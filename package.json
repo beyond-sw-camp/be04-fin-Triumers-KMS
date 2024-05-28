@@ -1,0 +1,25 @@
+{
+  "name": "chat-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.2",
+    "bcrypt": "^5.0.0",
+    "debug": "^4.3.4",
+    "dotenv": "^16.4.5",
+    "express": "^4.17.1",
+    "express-validator": "^6.6.1",
+    "mongodb": "^4.17.2",
+    "mongoose": "^5.13.22",
+    "mquery": "^5.0.0",
+    "optional-require": "^1.1.8",
+    "socket.io": "^2.3.0",
+    "ws": "^7.3.1"
+  }
+}

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Socket Tester</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <style>
+    #messages, #room-messages { list-style-type: none; margin: 0; padding: 0; }
+    #messages li, #room-messages li { padding: 5px 10px; }
+    #messages li:nth-child(odd), #room-messages li:nth-child(odd) { background: #eee; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-4">
+        <div class="card">
+          <div class="card-header">대기실</div>
+          <div class="card-body">
+            <form action="">
+              <div class="input-group mb-3">
+                <input type="text" class="form-control" id="nickname" placeholder="Enter your nickname" autocomplete="off">
+                <div class="input-group-append">
+                  <button id="set-nickname" class="btn btn-primary">Set Nickname</button>
+                </div>
+              </div>
+            </form>
+            <div id="error-message" class="text-danger"></div>
+          </div>
+          <div class="card-footer">
+            <ul id="messages"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card">
+          <div class="card-header">방 만들기</div>
+          <div class="card-body">
+            <form action="">
+              <div class="input-group mb-3">
+                <input type="text" class="form-control" id="new-room-name" placeholder="Enter room name" autocomplete="off">
+                <div class="input-group-append">
+                  <button id="create-room" class="btn btn-success">Create Room</button>
+                </div>
+              </div>
+            </form>
+            <div id="room-error-message" class="text-danger"></div>
+          </div>
+          <div class="card-footer">
+            <ul id="room-list"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card">
+          <div class="card-header">방 참여</div>
+          <div class="card-body">
+            <div class="input-group mb-1">
+              <select id="select-room" class="form-control">
+                <option value="none" selected="selected">방을 선택해주세요</option>
+              </select>
+              <div class="input-group-append">
+                <button id="select-room-button" class="btn btn-success">Select</button>
+              </div>
+            </div>
+            <form action="">
+              <div class="input-group mb-1">
+                <input type="text" class="form-control" id="room-msg" autocomplete="off">
+                <div class="input-group-append">
+                  <button id="room-msg-send" class="btn btn-primary">Send</button>
+                </div>
+              </div>
+            </form>
+            <button id="get-summary" class="btn btn-info">Get Summary</button>
+          </div>
+          <div class="card-footer">
+            <ul id="room-messages"></ul>
+            <div id="summary" class="mt-3"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    $(function () {
+      var socket = io();
+
+      $('#set-nickname').click(function () {
+        socket.emit('set_nickname', $('#nickname').val());
+        return false;
+      });
+
+      socket.on('nickname_set', function (nickname) {
+        alert('Nickname set to ' + nickname);
+      });
+
+      $('#create-room').click(function () {
+        socket.emit('create_room', $('#new-room-name').val());
+        $('#new-room-name').val('');
+        return false;
+      });
+
+      socket.on('room_list', function (rooms) {
+        $('#select-room').empty();
+        $('#select-room').append($('<option>').val('none').text('방을 선택해주세요'));
+        rooms.forEach(function (room) {
+          $('#select-room').append($('<option>').val(room.name).text(room.name));
+        });
+      });
+
+      $('#select-room-button').click(function () {
+        var room = $('#select-room').val();
+        if (room !== 'none') {
+          socket.emit('req_join_room', room);
+        }
+        return false;
+      });
+
+      $('#room-msg-send').click(function () {
+        socket.emit('req_room_message', $('#room-msg').val());
+        $('#room-msg').val('');
+        return false;
+      });
+
+      socket.on('room_messages', function (messages) {
+        $('#room-messages').empty();
+        messages.forEach(function (msg) {
+          $('#room-messages').append(
+            $('<li>').append(
+              $('<input>').attr('type', 'checkbox').addClass('msg-checkbox').data('msg', msg),
+              ' ',
+              msg.sender + ': ' + msg.text
+            )
+          );
+        });
+      });
+
+      socket.on('noti_join_room', function (msg) {
+        $('#room-messages').append($('<li>').text(msg));
+      });
+
+      socket.on('noti_room_message', function (msg) {
+        $('#room-messages').append(
+          $('<li>').append(
+            $('<input>').attr('type', 'checkbox').addClass('msg-checkbox').data('msg', msg),
+            ' ',
+            msg.sender + ': ' + msg.text
+          )
+        );
+      });
+
+      $('#get-summary').click(function () {
+        var selectedMessages = [];
+        $('.msg-checkbox:checked').each(function () {
+          selectedMessages.push($(this).data('msg'));
+        });
+        socket.emit('req_summary_selected', selectedMessages);
+      });
+
+      socket.on('summary_result', function (summary) {
+        $('#summary').text('Summary: ' + summary);
+      });
+
+      socket.on('error_message', function (message) {
+        alert(message);
+      });
+    });
+  </script>
+</body>
+</html>
