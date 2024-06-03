@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
@@ -8,35 +8,103 @@
     #messages, #room-messages { list-style-type: none; margin: 0; padding: 0; }
     #messages li, #room-messages li { padding: 5px 10px; }
     #messages li:nth-child(odd), #room-messages li:nth-child(odd) { background: #eee; }
+    .chat-container {
+      display: flex;
+      height: 100vh;
+    }
+    .chat-box {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      height: calc(100vh - 150px); 
+    }
+    .chat-input-container, .summary-button-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      border-top: 1px solid #ddd;
+      background-color: #fff;
+      position: sticky;
+      bottom: 0;
+      width: 100%;
+    }
+    .chat-input {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid #ddd;
+      background-color: #fff;
+      position: sticky;
+      bottom: 0;
+      width: 100%;
+    }
+    .chat-input input {
+      flex: 1;
+      margin-right: 10px;
+    }
+    .chat-sidebar {
+      width: 100%; /* 너비를 100%로 설정하여 가로로 길게 만듭니다. */
+      overflow-y: auto;
+      height: calc(100vh - 200px); 
+      padding-top: 10px;
+    }
+    .chat-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .center-button {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+      border-top: 1px solid #ddd;
+    }
+    .btn-small {
+      width: 150px;
+    }
+    .fixed-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background-color: #fff;
+      padding-top: 10px;
+    }
+    .create-room-container {
+      padding: 10px;
+      border-top: 1px solid #ddd;
+      background-color: #fff;
+      position: sticky;
+      top: 50px; 
+      z-index: 5;
+      width: 100%; /* 너비를 100%로 설정하여 가로로 길게 만듭니다. */
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-4">
+  <div class="container-fluid chat-container">
+    <div class="row w-100">
+      <div class="col-lg-3">
         <div class="card">
-          <div class="card-header">대기실</div>
+          <div class="card-header fixed-header">대기실</div>
           <div class="card-body">
             <form action="">
               <div class="input-group mb-3">
                 <input type="text" class="form-control" id="nickname" placeholder="Enter your nickname" autocomplete="off">
                 <div class="input-group-append">
-                  <button id="set-nickname" class="btn btn-primary">Set Nickname</button>
+                  <button id="set-nickname" class="btn btn-primary">Set</button>
                 </div>
               </div>
             </form>
             <div id="error-message" class="text-danger"></div>
           </div>
-          <div class="card-footer">
-            <ul id="messages"></ul>
-          </div>
         </div>
-      </div>
-
-      <div class="col-lg-4">
-        <div class="card">
-          <div class="card-header">방 만들기</div>
-          <div class="card-body">
+        <div class="card mt-3">
+          <div class="card-header fixed-header">방 목록</div>
+          <div class="create-room-container">
             <form action="">
               <div class="input-group mb-3">
                 <input type="text" class="form-control" id="new-room-name" placeholder="Enter room name" autocomplete="off">
@@ -45,41 +113,33 @@
                 </div>
               </div>
             </form>
-            <div id="room-error-message" class="text-danger"></div>
           </div>
-          <div class="card-footer">
-            <ul id="room-list"></ul>
+          <div class="card-body chat-sidebar">
+            <ul id="room-list" class="list-group"></ul>
           </div>
         </div>
       </div>
-
-      <div class="col-lg-4">
+      <div class="col-lg-9 chat-main">
         <div class="card">
-          <div class="card-header">방 참여</div>
-          <div class="card-body">
-            <div class="input-group mb-1">
-              <select id="select-room" class="form-control">
-                <option value="none" selected="selected">방을 선택해주세요</option>
-              </select>
-              <div class="input-group-append">
-                <button id="select-room-button" class="btn btn-success">Select</button>
-              </div>
-            </div>
-            <form action="">
+          <div class="card-header fixed-header">채팅</div>
+          <div class="card-body chat-box" id="room-messages">
+
+          </div>
+          <div class="card-footer chat-input-container">
+            <form action="" style="width: 100%;">
               <div class="input-group mb-1">
-                <input type="text" class="form-control" id="room-msg" autocomplete="off">
+                <input type="text" class="form-control" id="room-msg" placeholder="Type a message" autocomplete="off">
                 <div class="input-group-append">
                   <button id="room-msg-send" class="btn btn-primary">Send</button>
                 </div>
               </div>
             </form>
-            <button id="get-summary" class="btn btn-info">Get Summary</button>
-          </div>
-          <div class="card-footer">
-            <ul id="room-messages"></ul>
-            <div id="summary" class="mt-3"></div>
+            <div class="center-button">
+              <button id="get-summary" class="btn btn-info btn-small">Get Summary</button>
+            </div>
           </div>
         </div>
+        <div id="summary" class="mt-3"></div>
       </div>
     </div>
   </div>
@@ -90,87 +150,439 @@
   <script src="/socket.io/socket.io.js"></script>
   <script>
     $(function () {
-      var socket = io();
+        var socket = io();
 
-      $('#set-nickname').click(function () {
-        socket.emit('set_nickname', $('#nickname').val());
-        return false;
-      });
-
-      socket.on('nickname_set', function (nickname) {
-        alert('Nickname set to ' + nickname);
-      });
-
-      $('#create-room').click(function () {
-        socket.emit('create_room', $('#new-room-name').val());
-        $('#new-room-name').val('');
-        return false;
-      });
-
-      socket.on('room_list', function (rooms) {
-        $('#select-room').empty();
-        $('#select-room').append($('<option>').val('none').text('방을 선택해주세요'));
-        rooms.forEach(function (room) {
-          $('#select-room').append($('<option>').val(room.name).text(room.name));
+        $('#set-nickname').click(function () {
+            const nickname = $('#nickname').val();
+            if (nickname.trim() === '') {
+                alert('Nickname is required');
+                return false;
+            }
+            socket.emit('set_nickname', nickname);
+            return false;
         });
-      });
 
-      $('#select-room-button').click(function () {
-        var room = $('#select-room').val();
-        if (room !== 'none') {
-          socket.emit('req_join_room', room);
-        }
-        return false;
-      });
-
-      $('#room-msg-send').click(function () {
-        socket.emit('req_room_message', $('#room-msg').val());
-        $('#room-msg').val('');
-        return false;
-      });
-
-      socket.on('room_messages', function (messages) {
-        $('#room-messages').empty();
-        messages.forEach(function (msg) {
-          $('#room-messages').append(
-            $('<li>').append(
-              $('<input>').attr('type', 'checkbox').addClass('msg-checkbox').data('msg', msg),
-              ' ',
-              msg.sender + ': ' + msg.text
-            )
-          );
+        socket.on('nickname_set', function (nickname) {
+            alert('Nickname set to ' + nickname);
+            // 닉네임이 설정된 후 사용자가 접속할 수 있는 방 목록 요청
+            socket.emit('get_user_rooms');
         });
-      });
 
-      socket.on('noti_join_room', function (msg) {
-        $('#room-messages').append($('<li>').text(msg));
-      });
-
-      socket.on('noti_room_message', function (msg) {
-        $('#room-messages').append(
-          $('<li>').append(
-            $('<input>').attr('type', 'checkbox').addClass('msg-checkbox').data('msg', msg),
-            ' ',
-            msg.sender + ': ' + msg.text
-          )
-        );
-      });
-
-      $('#get-summary').click(function () {
-        var selectedMessages = [];
-        $('.msg-checkbox:checked').each(function () {
-          selectedMessages.push($(this).data('msg'));
+        $('#create-room').click(function () {
+            socket.emit('create_room', $('#new-room-name').val());
+            $('#new-room-name').val('');
+            return false;
         });
-        socket.emit('req_summary_selected', selectedMessages);
-      });
 
-      socket.on('summary_result', function (summary) {
-        $('#summary').text('Summary: ' + summary);
-      });
+        socket.on('room_list', function (rooms) {
+            $('#room-list').empty();
+            rooms.forEach(function (room) {
+                $('#room-list').append(
+                    $('<li>').addClass('list-group-item').html(`
+                        <div class="media">
+                            <img class="mr-3 rounded-circle" src="https://via.placeholder.com/50" alt="User Avatar">
+                            <div class="media-body">
+                                <h5 class="mt-0 room-name">${room.name}</h5>
+                                <small>Room created on ${new Date(room.createdAt).toLocaleDateString()}</small>
+                                <button class="btn btn-danger btn-sm float-right leave-room" data-room="${String(room.name)}">Leave</button>
+                            </div>
+                        </div>
+                    `)
+                );
+            });
 
-      socket.on('error_message', function (message) {
-        alert(message);
-      });
+            $('.leave-room').click(function () {
+                const roomName = $(this).data('room');
+                console.log(`Leaving room: ${roomName}`); // 디버그 메시지 추가
+                if (typeof roomName !== 'string') {
+                    console.error('roomName is not a string:', roomName);
+                }
+                socket.emit('leave_room', roomName);
+                $(this).closest('li').remove(); // 클라이언트에서 즉시 방 제거
+                $('#room-messages').empty(); // 방을 나갈 때 메시지 비우기
+            });
+
+            $('.list-group-item').click(function () {
+                const roomName = $(this).find('.room-name').text();
+                socket.emit('req_join_room', roomName);
+            });
+        });
+
+        $('#room-msg-send').click(function () {
+            socket.emit('req_room_message', $('#room-msg').val());
+            $('#room-msg').val('');
+            return false;
+        });
+
+        socket.on('room_messages', function (messages) {
+            $('#room-messages').empty();
+            messages.forEach(function (msg) {
+                $('#room-messages').append(
+                    $('<li>').append(
+                        $('<input>').attr('type', 'checkbox').addClass('msg-checkbox').data('msg', msg),
+                        ' ',
+                        msg.sender + ': ' + msg.text
+                    )
+                );
+            });
+        });
+
+        socket.on('noti_join_room', function (msg) {
+            $('#room-messages').append($('<li>').text(msg));
+        });
+
+        socket.on('noti_room_message', function (msg) {
+            $('#room-messages').append(
+                $('<li>').append(
+                    $('<input>').attr('type', 'checkbox').addClass('msg-checkbox').data('msg', msg),
+                    ' ',
+                    msg.sender + ': ' + msg.text
+                )
+            );
+        });
+
+        $('#get-summary').click(function () {
+            var selectedMessages = [];
+            $('.msg-checkbox:checked').each(function () {
+                selectedMessages.push($(this).data('msg'));
+            });
+            socket.emit('req_summary_selected', selectedMessages);
+        });
+
+        socket.on('summary_result', function (summary) {
+            $('#summary').text('Summary: ' + summary);
+        });
+
+        socket.on('left_room', function (roomName) {
+            // 방을 나간 후 방 목록을 갱신하고 메시지 박스를 비웁니다.
+            socket.emit('get_user_rooms');
+            $('#room-messages').empty();
+        });
+
+        socket.on('error_message', function (message) {
+            alert(message);
+        });
+    });
+  </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Socket Tester</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <style>
+    #messages, #room-messages { list-style-type: none; margin: 0; padding: 0; }
+    #messages li, #room-messages li { padding: 5px 10px; }
+    .chat-container {
+      display: flex;
+      height: 100vh;
+    }
+    .chat-box {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      height: calc(100vh - 150px);
+    }
+    .chat-input-container, .summary-button-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      border-top: 1px solid #ddd;
+      background-color: #fff;
+      position: sticky;
+      bottom: 0;
+      width: 100%;
+    }
+    .chat-input {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid #ddd;
+      background-color: #fff;
+      position: sticky;
+      bottom: 0;
+      width: 100%;
+    }
+    .chat-input input {
+      flex: 1;
+      margin-right: 10px;
+    }
+    .chat-sidebar {
+      width: 100%;
+      overflow-y: auto;
+      height: calc(100vh - 200px);
+      padding-top: 10px;
+    }
+    .chat-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .center-button {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+      border-top: 1px solid #ddd;
+    }
+    .btn-small {
+      width: 150px;
+    }
+    .fixed-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background-color: #fff;
+      padding-top: 10px;
+    }
+    .create-room-container {
+      padding: 10px;
+      border-top: 1px solid #ddd;
+      background-color: #fff;
+      position: sticky;
+      top: 50px;
+      z-index: 5;
+      width: 100%;
+    }
+    .message {
+      display: flex;
+      margin-bottom: 10px;
+    }
+    .message .avatar {
+      margin-right: 10px;
+    }
+    .message .text {
+      max-width: 60%;
+      padding: 10px;
+      border-radius: 5px;
+      position: relative;
+    }
+    .message.left .text {
+      background-color: #f1f0f0;
+    }
+    .message.right {
+      flex-direction: row-reverse;
+    }
+    .message.right .text {
+      background-color: #007bff;
+      color: white;
+    }
+    .message .timestamp {
+      font-size: 0.8em;
+      color: #888;
+    }
+    .message.right .timestamp {
+      text-align: right;
+    }
+    .message .sender {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid chat-container">
+    <div class="row w-100">
+      <div class="col-lg-3">
+        <div class="card">
+          <div class="card-header fixed-header">대기실</div>
+          <div class="card-body">
+            <form action="">
+              <div class="input-group mb-3">
+                <input type="text" class="form-control" id="nickname" placeholder="Enter your nickname" autocomplete="off">
+                <div class="input-group-append">
+                  <button id="set-nickname" class="btn btn-primary">Set</button>
+                </div>
+              </div>
+            </form>
+            <div id="error-message" class="text-danger"></div>
+          </div>
+        </div>
+        <div class="card mt-3">
+          <div class="card-header fixed-header">방 목록</div>
+          <div class="create-room-container">
+            <form action="">
+              <div class="input-group mb-3">
+                <input type="text" class="form-control" id="new-room-name" placeholder="Enter room name" autocomplete="off">
+                <div class="input-group-append">
+                  <button id="create-room" class="btn btn-success">Create Room</button>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="card-body chat-sidebar">
+            <ul id="room-list" class="list-group"></ul>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-9 chat-main">
+        <div class="card">
+          <div class="card-header fixed-header">채팅</div>
+          <div class="card-body chat-box" id="room-messages"></div>
+          <div class="card-footer chat-input-container">
+            <form action="" style="width: 100%;">
+              <div class="input-group mb-1">
+                <input type="text" class="form-control" id="room-msg" placeholder="Type a message" autocomplete="off">
+                <div class="input-group-append">
+                  <button id="room-msg-send" class="btn btn-primary">Send</button>
+                </div>
+              </div>
+            </form>
+            <div class="center-button">
+              <button id="get-summary" class="btn btn-info btn-small">Get Summary</button>
+            </div>
+          </div>
+        </div>
+        <div id="summary" class="mt-3"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    $(function () {
+        var socket = io();
+        var currentNickname = '';
+
+        $('#set-nickname').click(function () {
+            const nickname = $('#nickname').val();
+            if (nickname.trim() === '') {
+                alert('Nickname is required');
+                return false;
+            }
+            socket.emit('set_nickname', nickname);
+            currentNickname = nickname;
+            return false;
+        });
+
+        socket.on('nickname_set', function (nickname) {
+            alert('Nickname set to ' + nickname);
+            // 닉네임이 설정된 후 사용자가 접속할 수 있는 방 목록 요청
+            socket.emit('get_user_rooms');
+        });
+
+        $('#create-room').click(function () {
+            socket.emit('create_room', $('#new-room-name').val());
+            $('#new-room-name').val('');
+            return false;
+        });
+
+        socket.on('room_list', function (rooms) {
+            $('#room-list').empty();
+            rooms.forEach(function (room) {
+                $('#room-list').append(
+                    $('<li>').addClass('list-group-item').html(`
+                        <div class="media">
+                            <img class="mr-3 rounded-circle" src="https://via.placeholder.com/50" alt="User Avatar">
+                            <div class="media-body">
+                                <h5 class="mt-0 room-name">${room.name}</h5>
+                                <small>Room created on ${new Date(room.createdAt).toLocaleDateString()}</small>
+                                <button class="btn btn-danger btn-sm float-right leave-room" data-room="${String(room.name)}">Leave</button>
+                            </div>
+                        </div>
+                    `)
+                );
+            });
+
+            $('.leave-room').click(function () {
+                const roomName = $(this).data('room');
+                console.log(`Leaving room: ${roomName}`); // 디버그 메시지 추가
+                if (typeof roomName !== 'string') {
+                    console.error('roomName is not a string:', roomName);
+                }
+                socket.emit('leave_room', roomName);
+                $(this).closest('li').remove(); // 클라이언트에서 즉시 방 제거
+                $('#room-messages').empty(); // 방을 나갈 때 메시지 비우기
+            });
+
+            $('.list-group-item').click(function () {
+                const roomName = $(this).find('.room-name').text();
+                socket.emit('req_join_room', roomName);
+            });
+        });
+
+        $('#room-msg-send').click(function () {
+            const message = {
+                text: $('#room-msg').val(),
+                sender: currentNickname,
+                timestamp: new Date()
+            };
+            socket.emit('req_room_message', message);
+            $('#room-msg').val('');
+            return false;
+        });
+
+        socket.on('room_messages', function (messages) {
+            $('#room-messages').empty();
+            messages.forEach(function (msg) {
+                const messageClass = msg.sender === currentNickname ? 'right' : 'left';
+                $('#room-messages').append(
+                    $('<div>').addClass(`message ${messageClass}`).html(`
+                        <div class="avatar">
+                            <img src="https://via.placeholder.com/50" alt="User Avatar">
+                        </div>
+                        <div class="text">
+                            <input type="checkbox" class="msg-checkbox" data-msg="${msg.text}" style="margin-right: 5px;">
+                            <div class="sender">${msg.sender}</div>
+                            ${msg.text}
+                            <div class="timestamp">${new Date(msg.timestamp).toLocaleTimeString()} | ${new Date(msg.timestamp).toLocaleDateString()}</div>
+                        </div>
+                    `)
+                );
+            });
+        });
+
+        socket.on('noti_join_room', function (msg) {
+            $('#room-messages').append($('<div>').addClass('message left').text(msg));
+        });
+
+        socket.on('noti_room_message', function (msg) {
+            const messageClass = msg.sender === currentNickname ? 'right' : 'left';
+            $('#room-messages').append(
+                $('<div>').addClass(`message ${messageClass}`).html(`
+                    <div class="avatar">
+                        <img src="https://via.placeholder.com/50" alt="User Avatar">
+                    </div>
+                    <div class="text">
+                        <input type="checkbox" class="msg-checkbox" data-msg="${msg.text}" style="margin-right: 5px;">
+                        <div class="sender">${msg.sender}</div>
+                        ${msg.text}
+                        <div class="timestamp">${new Date(msg.timestamp).toLocaleTimeString()} | ${new Date(msg.timestamp).toLocaleDateString()}</div>
+                    </div>
+                `)
+            );
+        });
+
+        $('#get-summary').click(function () {
+            var selectedMessages = [];
+            $('.msg-checkbox:checked').each(function () {
+                selectedMessages.push($(this).data('msg'));
+            });
+            socket.emit('req_summary_selected', selectedMessages);
+        });
+
+        socket.on('summary_result', function (summary) {
+            $('#summary').text('Summary: ' + summary);
+        });
+
+        socket.on('left_room', function (roomName) {
+            // 방을 나간 후 방 목록을 갱신하고 메시지 박스를 비웁니다.
+            socket.emit('get_user_rooms');
+            $('#room-messages').empty();
+        });
+
+        socket.on('error_message', function (message) {
+            alert(message);
+        });
     });
   </script>
 </body>
