@@ -271,7 +271,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-mongoose.connect('mongodb://172.17.0.2:27017/chat-app', {
+mongoose.connect('mongodb://localhost:27017/chat-app', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useCreateIndex: true

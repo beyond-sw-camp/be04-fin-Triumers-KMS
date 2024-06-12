@@ -11,7 +11,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-mongoose.connect('mongodb://localhost/chat-app', {
+mongoose.connect('mongodb://localhost:27017/chat-app', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
