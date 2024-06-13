@@ -1,0 +1,137 @@
+.content-preview {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    /* 두 줄을 표시하고 넘어가면 말줄임표 표시 */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: normal;
+    text-overflow: ellipsis;
+    min-height: 50px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    max-width: 100%;
+    line-height: 1.8em;
+}
+
+.content-preview.no-postImg{
+    -webkit-line-clamp: 9;
+    min-height: 260px;
+}
+
+.card-title {
+    min-height: 20px;
+}
+
+#profile-img {
+    float: left;
+}
+
+.tag {
+    margin-left: 5px;
+}
+
+#top {
+    display: flex;
+    justify-content: space-between;
+}
+
+#no-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+#no-content>p {
+    margin-top: 100px;
+}
+
+.like {
+    display: flex;
+    align-items: center;
+}
+
+#author-date {
+    margin-left: 15px;
+    margin-top: 10px;
+}
+
+#top-info {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+}
+
+.preview-main,
+.d-flex {
+    margin-top: 10px;
+}
+
+.custom-badge {
+    background-color: #042444;
+    color: white;
+}
+
+.card {
+    margin: 10px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.3s ease-in-out;
+  }
+  
+  .card:hover {
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .preview-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .preview-main .card-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+  }
+
+#top-btn {
+    font-size: 50px;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    color: #042444;
+}
+
+
+.zerg-unit {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    background-color: white;
+    border: 3px solid navy;
+    border-radius: 50%;
+    position: absolute;
+    cursor: pointer;
+    animation: zergAnimation 20s linear infinite; /* 애니메이션 적용 */
+  }
+  
+  @keyframes zergAnimation {
+    0% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(50vh); /* 바닥까지 떨어지는 위치로 변경 */
+    }
+    100% {
+      transform: translateY(100vh); /* 바닥까지 떨어지는 위치로 변경 */
+    }
+  }
